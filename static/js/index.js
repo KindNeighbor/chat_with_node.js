@@ -2,8 +2,18 @@ var socket = io()
 
 // 접속 시 실행
 socket.on('connect', function() {
-    var input = document.getElementById('test')
-    input.value = '접속 되었습니다.'
+    // 이름 입력 받은 후
+    var name = prompt('반갑습니다!', '')
+
+    // 이름이 빈칸인 경우
+    if (!name) name = '익명'
+
+    // 서버에 새로운 유저가 왔다고 알림
+    socket.emit('newUser', name)
+})
+
+socket.on('update', function(data) {
+    console.log('${data.name}: ${data.messasge}')
 })
 
 // 전송 function
@@ -15,5 +25,5 @@ function send() {
     document.getElementById('test').value = ''
 
     // 서버로 메세지 send
-    socket.emit('send', {msg: message})
+    socket.emit('message', {type: 'message', message: message})
 }

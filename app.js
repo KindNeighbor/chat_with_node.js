@@ -17,6 +17,18 @@ const server = http.createServer(app)
 // 생성된 서버를 socket.io에 바인딩
 const io = socket(server)
 
+io.sockets.on('connection', function(socket) {
+    console.log('유저가 접속되었습니다.')
+
+    socket.on('send', function(data) {
+        console.log('전달된 메세지:', data.msg)
+    })
+
+    socket.on('disconnect', function() {
+        console.log('접속이 종료되었습니다.')
+    })
+})
+
 // 서버를 8080 포트로 listen
 server.listen(8080, function() {
     console.log('서버 실행 중')

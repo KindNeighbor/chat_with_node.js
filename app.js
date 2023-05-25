@@ -8,6 +8,9 @@ const socket = require('socket.io')
 const http = require('http')
 const fs = require('fs')
 
+// mongoose 모듈 불러오기
+const mongoose = require('mongoose');
+
 // express 객체 생성
 const app = express()
 
@@ -16,6 +19,16 @@ const server = http.createServer(app)
 
 // 생성된 서버를 socket.io에 바인딩
 const io = socket(server)
+
+// 채팅로그 스키마 생성
+const ChatSchema = new mongoose.Schema({
+    name: String,
+    message: String,
+    time: { type: Date, default: Date.now }
+});
+
+// 채팅로그 모델 생성
+const Chat = mongoose.model('Chat', ChatSchema);
 
 // 접속 시
 io.sockets.on('connection', function(socket) {
@@ -38,6 +51,20 @@ io.sockets.on('connection', function(socket) {
         data.name = socket.name
         console.log(data)
 
+        // 채팅로그 생성 및 저장
+        const chat = new Chat({
+            name: data.name,
+            message: data.message
+        });
+
+        chat.save()
+        .then(() => {
+            console.log('Chat saved');
+        })
+        .catch(err => {
+            console.log(err);
+        });
+
         // 보낸 사람을 제외한 나머지 유저에게 메세지 전송
         socket.broadcast.emit('update', data)
     })
@@ -51,6 +78,22 @@ io.sockets.on('connection', function(socket) {
             {type: 'disconnect', name: 'SERVER', message: socket.name + '님이 나가셨습니다.'})
     })
 })
+
+// 몽구스 연결
+mongoose
+  .connect(
+    'mongodb+srv://zerosix1017:Vldksh1017@cluster0.ttry0op.mongodb.net/?retryWrites=true&w=majority',
+    {
+      // useNewUrlPaser: true,
+      // useUnifiedTofology: true,
+      // useCreateIndex: true,
+      // useFindAndModify: false,
+    }
+  )
+  .then(() => console.log('MongoDB conected'))
+  .catch((err) => {
+    console.log(err);
+  });
 
 
 // 서버를 8080 포트로 listen
